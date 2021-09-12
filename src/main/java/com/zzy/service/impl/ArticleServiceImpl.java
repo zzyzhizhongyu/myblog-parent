@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zzy.dao.mapper.ArticleMapper;
 import com.zzy.dao.pojo.Article;
 import com.zzy.service.ArticleService;
+import com.zzy.service.SysUserService;
+import com.zzy.service.TagService;
 import com.zzy.vo.ArticleVo;
 import com.zzy.vo.Result;
 import com.zzy.vo.params.PageParams;
@@ -22,6 +24,10 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Autowired
     private ArticleMapper articleMapper;
+    @Autowired
+    private TagService tagService;
+    @Autowired
+    private SysUserService sysUserService;
 
     @Override
     public Result listArticle(PageParams pageParams) {
@@ -32,25 +38,33 @@ public class ArticleServiceImpl implements ArticleService {
         Page<Article> articlePage = articleMapper.selectPage(page, queryWrapper);
         List<Article> records = articlePage.getRecords();
 
-        List<ArticleVo> articleVoList=copyList(records);
+        List<ArticleVo> articleVoList=copyList(records,true,true);
         return Result.success(articleVoList);
     }
 
 
-    private List<ArticleVo> copyList(List<Article> records) {
+    private List<ArticleVo> copyList(List<Article> records,boolean isTag, boolean isAuthor) {
         ArrayList<ArticleVo> articleVoList = new ArrayList<>();
         for(Article record:records){
-            articleVoList.add(copy(record));
+            articleVoList.add(copy(record,isTag,isAuthor));
         }
 
         return articleVoList;
     }
 
-    private ArticleVo copy(Article article){
+    private ArticleVo copy(Article article,boolean isTag, boolean isAuthor){
         ArticleVo articleVo = new ArticleVo();
         BeanUtils.copyProperties(article,articleVo);
-
         articleVo.setCreateDate(new DateTime(article.getCreateDate()).toString("yyyy-MM-dd HH:mm"));
+
+        if (isTag) {
+            Long articleId = article.getId();
+            articleVo.setTags(tagService.findTagsArticleId(articleId));
+        }
+        if (isAuthor) {
+            Long authorId = article.getAuthorId();
+            articleVo.setAuthor(sysUserService.findUserById(authorId).getNickname());
+        }
         return articleVo;
 
     }
