@@ -2,6 +2,7 @@ package com.zzy.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.zzy.dao.dos.Archives;
 import com.zzy.dao.mapper.ArticleMapper;
 import com.zzy.dao.pojo.Article;
 import com.zzy.service.ArticleService;
@@ -40,6 +41,34 @@ public class ArticleServiceImpl implements ArticleService {
 
         List<ArticleVo> articleVoList=copyList(records,true,true);
         return Result.success(articleVoList);
+    }
+
+    @Override
+    public Result hotArticle(int limit) {
+        LambdaQueryWrapper<Article> queryWrapper=new LambdaQueryWrapper<>();
+        queryWrapper.orderByDesc(Article::getCommentCounts)
+                    .select(Article::getId,Article::getTitle)
+                    .last("limit "+limit);
+
+        List<Article> articles = articleMapper.selectList(queryWrapper);
+        return Result.success(copyList(articles,false,false));
+    }
+
+    @Override
+    public Result newArticles(int limit) {
+        LambdaQueryWrapper<Article> queryWrapper=new LambdaQueryWrapper<>();
+        queryWrapper.orderByDesc(Article::getCreateDate)
+                .select(Article::getId,Article::getTitle)
+                .last("limit "+limit);
+
+        List<Article> articles = articleMapper.selectList(queryWrapper);
+        return Result.success(copyList(articles,false,false));
+    }
+
+    @Override
+    public Result listArchives() {
+        List<Archives> archivesList = articleMapper.listArchives();
+        return Result.success(archivesList);
     }
 
 

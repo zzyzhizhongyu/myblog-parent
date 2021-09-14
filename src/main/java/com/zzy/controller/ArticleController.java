@@ -24,7 +24,33 @@ public class ArticleController {
 
     @PostMapping
     public Result listArticle(@RequestBody PageParams pageParams) {
-
         return  articleService.listArticle(pageParams);
     }
+
+    /**
+     * 首页 最热文章
+     */
+    @PostMapping("hot")
+    public Result hotArticle() {
+        int limit = 5;
+        return  articleService.hotArticle(limit);
+    }
+
+    /**
+     * 首页 最新文章
+     */
+    @PostMapping("new")
+    public Result newArticles() {
+        int limit = 5;
+        return  articleService.newArticles(limit);
+    }
+
+    /**
+     * 首页 最新文章
+     */
+    @PostMapping("listArchives")
+    public Result listArchives() {
+        return  articleService.listArchives();
+    }
+
 }
