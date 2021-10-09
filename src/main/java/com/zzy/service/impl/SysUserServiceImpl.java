@@ -1,9 +1,18 @@
 package com.zzy.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zzy.dao.mapper.SysUserMapper;
+import com.zzy.dao.pojo.Article;
 import com.zzy.dao.pojo.SysUser;
+import com.zzy.service.LoginService;
 import com.zzy.service.SysUserService;
+import com.zzy.vo.ErrorCode;
+import com.zzy.vo.LoginUserVo;
+import com.zzy.vo.Result;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -37,5 +46,35 @@ public class SysUserServiceImpl implements SysUserService {
         }
 
         return sysUser;
+    }
+
+    @Override
+    public Result findUserByToken(String token) {
+
+
+        SysUser sysUser = loginService.checkToken(token);
+        if(sysUser==null){
+            return Result.fail(ErrorCode.TOKEN_ERROR.getCode(),ErrorCode.TOKEN_ERROR.getMsg());
+        }
+        LoginUserVo loginUserVo = new LoginUserVo();
+        loginUserVo.setAccount(sysUser.getAccount());
+        loginUserVo.setAvatar(sysUser.getAvatar());
+        loginUserVo.setId(sysUser.getId());
+        loginUserVo.setNickname(sysUser.getNickname());
+        return Result.success(loginUserVo);
+
+    }
+
+    @Override
+    public SysUser findUserByAccount(String account) {
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysUser::getAccount,account);
+        queryWrapper.last("limit 1");
+        return sysUserMapper.selectOne(queryWrapper);
+    }
+
+    @Override
+    public void save(SysUser sysUser) {
+        this.sysUserMapper.insert(sysUser);
     }
 }
